@@ -14,7 +14,7 @@ A simple social networking application built using Django and Django Rest Framew
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/<your-username>/social_network.git
+git clone https://github.com/22Aravind18/social_network.git
 cd social_network
 ```
 
@@ -22,7 +22,7 @@ cd social_network
 
 ```bash
 python -m venv env
-source env/bin/activate  # On Windows, use `env\Scripts\activate`
+source env/bin/activate  
 ```
 
 3. Install the dependencies:
@@ -52,20 +52,4 @@ python manage.py runserver
 
 7. Access the application:
 
-- Sign Up: `http://127.0.0.1:8000/signup-page/`
-- Log In: `http://127.0.0.1:8000/login/`
-
-## Containerization
-
-To run the application using Docker, follow these steps:
-
-1. Build and run the Docker containers:
-
-```bash
-docker-compose up --build
-```
-
-2. Access the application:
-
-- Sign Up: `http://127.0.0.1:8000/signup-page/`
 - Log In: `http://127.0.0.1:8000/login/`
