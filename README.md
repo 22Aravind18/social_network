@@ -18,7 +18,7 @@ git clone https://github.com/22Aravind18/social_network.git
 cd social_network
 ```
 
-2. Create a virtual environment and activate it:
+2. Create a virtual environment and activate it(optional if using pycharm, because the virtual env will activated along with project creation):
 
 ```bash
 python -m venv env
@@ -41,7 +41,7 @@ To run and access the billing page, create a secret using the command:
    
 Create a secret variable named "SECRET_KEY" and append the randomly generated secret string with the prefix "django-insecure-" in social_network/settings.py file
 
-5. Apply the migrations:
+5. Apply the migrations(optional):
 
 ```bash
 python manage.py makemigrations
@@ -62,4 +62,4 @@ docker-compose up --build
 
 8. Access the application:
 
-- Log In: `http://127.0.0.1:8000/login/`
+- Log In: `http://127.0.0.1:8000/`
