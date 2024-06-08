@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <h1>Welcome, {{ user.username }}</h1>
+
+    <!-- Logout button -->
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+    </form>
+
+    <!-- List all friends button -->
+    <form method="get" action="{% url 'home' %}">
+        <input type="hidden" name="view" value="friends">
+        <button type="submit">View All Friends</button>
+    </form>
+
+    <!-- Search bar -->
+    <form method="get" action="{% url 'home' %}">
+        <label for="keyword">Search Users:</label>
+        <input type="text" id="keyword" name="keyword" required>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if view == 'friends' and friends %}
+        <h2>Your Friends:</h2>
+        <ul>
+        {% for friend in friends %}
+            <li>{{ friend.username }} ({{ friend.email }})</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if users %}
+        <h2>Search Results:</h2>
+        <ul>
+        {% for user in users %}
+            <li>{{ user.username }} ({{ user.email }})
+                {% if user != request.user %}
+                    <form method="post" action="{% url 'send_friend_request' user.id %}">
+                        {% csrf_token %}
+                        <button type="submit">Send Friend Request</button>
+                    </form>
+                {% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if pending_requests %}
+        <h2>Pending Friend Requests:</h2>
+        <ul>
+        {% for request in pending_requests %}
+            <li>{{ request.from_user.username }} ({{ request.from_user.email }})
+                <form method="post" action="{% url 'respond_friend_request' request.id 'accept' %}">
+                    {% csrf_token %}
+                    <button type="submit">Accept</button>
+                </form>
+                <form method="post" action="{% url 'respond_friend_request' request.id 'reject' %}">
+                    {% csrf_token %}
+                    <button type="submit">Reject</button>
+                </form>
+            </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>
