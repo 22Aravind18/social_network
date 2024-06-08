@@ -39,7 +39,7 @@ To run and access the billing page, create a secret using the command:
    python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
 ```
    
-Create a secret variable named "SECRET_KEY" and append the randomly generated secret string with the prefix "django-insecure-" in billing_system/settings.py file
+Create a secret variable named "SECRET_KEY" and append the randomly generated secret string with the prefix "django-insecure-" in social_network/settings.py file
 
 5. Apply the migrations:
 
