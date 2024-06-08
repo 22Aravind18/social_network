@@ -57,7 +57,7 @@ python manage.py createsuperuser
 7. Run the development server:
 
 ```bash
-python manage.py runserver
+docker-compose up --build
 ```
 
 8. Access the application:
