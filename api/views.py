@@ -9,6 +9,10 @@ from .forms import SignUpForm, LoginForm
 from .serializers import UserSerializer, FriendRequestSerializer
 from .models import FriendRequest
 from django.db.models import Q
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.generics import ListAPIView, GenericAPIView
+from rest_framework.permissions import IsAuthenticated
+from .pagination import CustomPagination
 
 User = get_user_model()
 
@@ -47,13 +51,17 @@ def login_view(request):
 
 @login_required
 def home_view(request):
+    tab = request.GET.get('tab', 'search')
     keyword = request.GET.get('keyword', '')
-    view = request.GET.get('view', '')
-    users = User.objects.filter(Q(email__icontains=keyword) | Q(username__icontains=keyword)) if keyword else None
-    pending_requests = FriendRequest.objects.filter(to_user=request.user, is_accepted=False)
-
+    users = None
     friends = None
-    if view == 'friends':
+    pending_requests = None
+
+    if tab == 'search' and keyword:
+        users = User.objects.filter(Q(email__icontains=keyword) | Q(username__icontains=keyword))
+    elif tab == 'friend-requests':
+        pending_requests = FriendRequest.objects.filter(to_user=request.user, is_accepted=False)
+    elif tab == 'friends':
         friends = User.objects.filter(received_requests__from_user=request.user, received_requests__is_accepted=True) | \
                   User.objects.filter(sent_requests__to_user=request.user, sent_requests__is_accepted=True)
 
@@ -61,7 +69,7 @@ def home_view(request):
         'users': users,
         'pending_requests': pending_requests,
         'friends': friends,
-        'view': view
+        'tab': tab
     })
 
 @api_view(['POST'])
@@ -116,3 +124,14 @@ from django.contrib.auth import logout
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+class SearchView(ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination  # Use CustomPagination
+
+    def get_queryset(self):
+        keyword = self.request.query_params.get('keyword', '')
+        if keyword:
+            return User.objects.filter(Q(email__iexact=keyword) | Q(username__icontains=keyword))
+        return User.objects.none()
