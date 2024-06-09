@@ -41,25 +41,13 @@ To run and access the billing page, create a secret using the command:
    
 Create a secret variable named "SECRET_KEY" and append the randomly generated secret string with the prefix "django-insecure-" in social_network/settings.py file
 
-5. Apply the migrations(optional):
 
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-6. Create a superuser:
-
-```bash
-python manage.py createsuperuser
-```
-
-7. Run the development server:
+5. Run the development server:
 
 ```bash
 docker-compose up --build
 ```
 
-8. Access the application:
+6. Access the application:
 
 - Log In: `http://127.0.0.1:8000/`
