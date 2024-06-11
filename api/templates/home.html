@@ -6,80 +6,171 @@
     <title>Home</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .nav {
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            background-color: #007bff;
+            border-radius: 8px;
+        }
+        .nav li {
+            list-style: none;
+            margin: 0 5px;
+        }
+        .nav a, .nav button {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .nav a:hover, .nav button:hover {
+            background-color: #0056b3;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            margin-top: 20px;
+        }
+        form input, form button {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        form button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        form button:hover {
+            background-color: #0056b3;
+        }
+        ul {
+            padding: 0;
+            margin-top: 20px;
+            list-style: none;
+        }
+        ul li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        ul li:last-child {
+            border-bottom: 0;
+        }
+        ul li form {
+            display: inline;
+        }
+        p {
+            color: #777;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome, {{ user.username }}</h1>
-
-    <!-- Navigation Tabs -->
-    <ul class="nav">
-        <li><a href="{% url 'home' %}?tab=search">Search Users</a></li>
-        <li><a href="{% url 'home' %}?tab=friend-requests">Friend Requests</a></li>
-        <li><a href="{% url 'home' %}?tab=friends">Friends</a></li>
-        <li>
-            <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit">Logout</button>
-            </form>
-        </li>
-    </ul>
-
-    {% if tab == 'search' %}
-        <!-- Search bar -->
-        <form method="get" action="{% url 'home' %}">
-            <input type="hidden" name="tab" value="search">
-            <label for="keyword">Search Users:</label>
-            <input type="text" id="keyword" name="keyword" value="{{ request.GET.keyword }}" required>
-            <button type="submit">Search</button>
-        </form>
-
-        {% if users %}
-            <h2>Search Results:</h2>
-            <ul>
-            {% for user in users %}
-                <li>{{ user.username }} ({{ user.email }})
-                    {% if user != request.user %}
-                        <form method="post" action="{% url 'send_friend_request' user.id %}">
-                            {% csrf_token %}
-                            <button type="submit">Send Friend Request</button>
-                        </form>
-                    {% endif %}
-                </li>
-            {% endfor %}
-            </ul>
-        {% endif %}
-    {% elif tab == 'friend-requests' %}
-        <!-- Pending Friend Requests -->
-        {% if pending_requests %}
-            <h2>Pending Friend Requests:</h2>
-            <ul>
-            {% for fr in pending_requests %}
-                <li>{{ fr.from_user.username }} ({{ fr.from_user.email }})
-                    <form method="post" action="{% url 'respond_friend_request' fr.id 'accept' %}">
+    <div class="container">
+        <h1>Welcome, {{ user.username }}</h1>
+        <!-- Navigation Tabs -->
+        <ul class="nav">
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'home' %}?tab=search">Search Users</a></li>
+                <li><a href="{% url 'home' %}?tab=friend-requests">Friend Requests</a></li>
+                <li><a href="{% url 'home' %}?tab=friends">Friends</a></li>
+                <li><a href="{% url 'home' %}?tab=chat">Chat</a></li>
+                <li>
+                    <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}
-                        <button type="submit">Accept</button>
-                    </form>
-                    <form method="post" action="{% url 'respond_friend_request' fr.id 'reject' %}">
-                        {% csrf_token %}
-                        <button type="submit">Reject</button>
+                        <button type="submit">Logout</button>
                     </form>
                 </li>
-            {% endfor %}
-            </ul>
+            {% else %}
+                <li><a href="{% url 'login' %}">Login</a></li>
+            {% endif %}
+        </ul>
+
+        <!-- Main Content Based on Tab -->
+        {% if user.is_authenticated %}
+            {% if tab == 'search' %}
+                <!-- Search bar -->
+                <form method="get" action="{% url 'home' %}">
+                    <input type="hidden" name="tab" value="search">
+                    <input type="text" id="keyword" name="keyword" value="{{ request.GET.keyword }}" placeholder="Search Users..." required>
+                    <button type="submit">Search</button>
+                </form>
+                {% if users %}
+                    <h2>Search Results:</h2>
+                    <ul>
+                        {% for user in users %}
+                            <li>{{ user.username }} ({{ user.email }})
+                                {% if user != request.user %}
+                                    <form method="post" action="{% url 'send_friend_request' user.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit">Send Friend Request</button>
+                                    </form>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% elif tab == 'friend-requests' %}
+                <!-- Pending Friend Requests -->
+                {% if pending_requests %}
+                    <h2>Pending Friend Requests:</h2>
+                    <ul>
+                        {% for fr in pending_requests %}
+                            <li>{{ fr.from_user.username }} ({{ fr.from_user.email }})
+                                <form method="post" action="{% url 'respond_friend_request' fr.id 'accept' %}">
+                                    {% csrf_token %}
+                                    <button type="submit">Accept</button>
+                                </form>
+                                <form method="post" action="{% url 'respond_friend_request' fr.id 'reject' %}">
+                                    {% csrf_token %}
+                                    <button type="submit">Reject</button>
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No pending friend requests.</p>
+                {% endif %}
+            {% elif tab == 'friends' %}
+                <!-- Friends List -->
+                {% if friends %}
+                    <h2>Your Friends:</h2>
+                    <ul>
+                        {% for friend in friends %}
+                            <li>{{ friend.username }} ({{ friend.email }})
+                                <a href="{% url 'chat' friend.id %}" style="color: #007bff; text-decoration: none;">Chat</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>You have no friends yet.</p>
+                {% endif %}
+            {% endif %}
         {% else %}
-            <p>No pending friend requests.</p>
+            <p>Please <a href="{% url 'login' %}" style="color: #007bff; text-decoration: none;">login</a> to access your chats.</p>
         {% endif %}
-    {% elif tab == 'friends' %}
-        <!-- Friends List -->
-        {% if friends %}
-            <h2>Your Friends:</h2>
-            <ul>
-            {% for friend in friends %}
-                <li>{{ friend.username }} ({{ friend.email }})</li>
-            {% endfor %}
-            </ul>
-        {% else %}
-            <p>You have no friends yet.</p>
-        {% endif %}
-    {% endif %}
+    </div>
 </body>
 </html>

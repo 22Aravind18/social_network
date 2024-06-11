@@ -6,9 +6,43 @@ body {
     padding: 20px;
 }
 
+.nav {
+    list-style-type: none;
+    padding: 0;
+    overflow: hidden;
+}
+
+.nav li {
+    float: left;
+    margin-right: 10px;
+}
+
+.nav li form {
+    display: inline;
+}
+
+.nav a, .nav button {
+    display: block;
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.nav a:hover, .nav button:hover {
+    background-color: #0056b3;
+}
+
+h1, h2 {
+    color: #007bff;
+}
+
 form {
     margin: 20px auto;
-    max-width: 300px;
+    max-width: 400px;
 }
 
 form label {
@@ -30,23 +64,11 @@ form button {
     color: #fff;
     border: none;
     cursor: pointer;
+    border-radius: 4px;
 }
 
 form button:hover {
     background-color: #0056b3;
-}
-
-h1 {
-    color: #007bff;
-}
-
-a {
-    color: #007bff;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
 }
 
 ul {
@@ -60,4 +82,24 @@ ul li {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
+}
+
+#chat-box {
+    margin-top: 20px;
+}
+
+#messages-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+#message-input,
+#chat-form button {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-top: 10px;
 }

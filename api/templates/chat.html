@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <script>
+        // Chat functionality
+        var chatSocket;
+
+        function updateChatBox(friendId, friendUsername) {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.dataset.recipientId = friendId;
+            document.querySelector('#chat-box h2').textContent = `Chatting with ${friendUsername}`;
+            startChat(friendId);  // Start the new chat with the selected friend
+        }
+
+        function startChat(recipientId) {
+            fetch(`/messages/${recipientId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const messagesList = document.getElementById('messages-list');
+                    messagesList.innerHTML = '';
+                    data.forEach(message => {
+                        const messageItem = document.createElement('li');
+                        messageItem.textContent = `${message.sender.username}: ${message.content}`;
+                        messagesList.appendChild(messageItem);
+                    });
+                    setupWebSocket(recipientId);
+                });
+        }
+
+        function setupWebSocket(recipientId) {
+                if (chatSocket) {
+                    chatSocket.close();
+                }
+                const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+                const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+                const wsHost = isLocalhost ? `${wsProtocol}://localhost:8000/ws/chat/${recipientId}/` : `${wsProtocol}://${window.location.hostname}/ws/chat/${recipientId}/`;
+                chatSocket = new WebSocket(wsHost);
+                chatSocket.onmessage = function(e) {
+                    const data = JSON.parse(e.data);
+                    const message = data.message;
+                    const messagesList = document.getElementById('messages-list');
+                    const messageItem = document.createElement('li');
+                    messageItem.textContent = `${message.sender.username}: ${message.content}`;
+                    messagesList.appendChild(messageItem);
+                };
+                const form = document.getElementById('chat-form');
+                form.onsubmit = function(e) {
+                    e.preventDefault();
+                    const messageInput = document.getElementById('message-input');
+                    chatSocket.send(JSON.stringify({ 'message': messageInput.value }));
+                    messageInput.value = '';
+                };
+            }
+
+        window.onload = function() {
+            const recipientId = document.getElementById('chat-box').dataset.recipientId;
+            startChat(recipientId);
+        }
+    </script>
+</head>
+<body>
+    <h1>Chat</h1>
+    <a href="{% url 'home' %}">Back to Home</a>
+
+    <!-- Chat List -->
+    <div id="chats-list">
+        <h2>Your Chats:</h2>
+        <ul>
+            {% for friend in friends %}
+                <li>
+                    <a href="#" onclick="startChat({{ friend.id }}); return false;">{{ friend.username }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Chat Box -->
+    <div id="chat-box" data-recipient-id="{{ recipient.id }}">
+    <h2>Chatting with {{ recipient.username }}</h2>
+    <ul id="messages-list"></ul>
+    <form id="chat-form">
+        <input type="text" id="message-input" placeholder="Type a message..." required>
+        <button type="submit">Send</button>
+    </form>
+</div>
+</body>
+</html>
