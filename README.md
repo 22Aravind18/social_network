@@ -51,3 +51,4 @@ docker-compose up --build
 6. Access the application:
 
 - Log In: `http://127.0.0.1:8000/`
+# chatapp

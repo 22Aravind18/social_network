@@ -20,12 +20,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ""
+SECRET_KEY = "q*wg2k8l@aig1_0lz$lx%@g8pqejq*kpj7lcs*(@^9)09jkb^i"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["19fd-2409-40f4-1016-f5e5-ec5a-4433-5e72-7cc2.ngrok-free.app", "127.0.0.1", "localhost",]
 
 AUTH_USER_MODEL = 'api.User'
 
@@ -35,6 +35,7 @@ AUTH_USER_MODEL = 'api.User'
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -44,10 +45,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'api',
+    'channels',
 ]
 
 
-
+ASGI_APPLICATION = 'social_network.asgi.application'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -57,7 +59,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'social_network.urls'
 
@@ -132,3 +137,21 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
 }
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://19fd-2409-40f4-1016-f5e5-ec5a-4433-5e72-7cc2.ngrok-free.app",
+]
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8000',
+    'http://19fd-2409-40f4-1016-f5e5-ec5a-4433-5e72-7cc2.ngrok-free.app.ngrok.io',
+]

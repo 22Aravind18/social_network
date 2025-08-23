@@ -13,6 +13,11 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import ListAPIView, GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from .pagination import CustomPagination
+from .serializers import MessageSerializer
+from .models import Message
+from rest_framework import permissions, generics
+from rest_framework.views import APIView
+from django.shortcuts import render, redirect, get_object_or_404
 
 User = get_user_model()
 
@@ -69,7 +74,8 @@ def home_view(request):
         'users': users,
         'pending_requests': pending_requests,
         'friends': friends,
-        'tab': tab
+        'tab': tab,
+        'keyword': keyword
     })
 
 @api_view(['POST'])
@@ -128,10 +134,40 @@ def logout_view(request):
 class SearchView(ListAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
-    pagination_class = CustomPagination  # Use CustomPagination
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         keyword = self.request.query_params.get('keyword', '')
         if keyword:
             return User.objects.filter(Q(email__iexact=keyword) | Q(username__icontains=keyword))
         return User.objects.none()
+
+class MessageListCreateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        recipient_id = kwargs.get('recipient_id')
+        sender = request.user
+        recipient = User.objects.get(id=recipient_id)
+        messages = Message.objects.filter(sender__in=[sender, recipient], recipient__in=[sender, recipient]).order_by('timestamp')
+        serializer = MessageSerializer(messages, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        recipient_id = kwargs.get('recipient_id')
+        sender = request.user
+        recipient = User.objects.get(id=recipient_id)
+        content = request.data.get('content')
+        message = Message.objects.create(sender=sender, recipient=recipient, content=content)
+        serializer = MessageSerializer(message)
+        return Response(serializer.data)
+
+@login_required()
+def chat_view(request, recipient_id):
+    friends = User.objects.filter(received_requests__from_user=request.user, received_requests__is_accepted=True) | \
+              User.objects.filter(sent_requests__to_user=request.user, sent_requests__is_accepted=True)
+    recipient = get_object_or_404(User, id=recipient_id)
+    return render(request, 'chat.html', {
+        'friends': friends,
+        'recipient': recipient,
+    })
