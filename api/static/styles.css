@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f0f3f5;
+    background-color: #000000;
     color: #333;
     text-align: center;
     padding: 20px;
@@ -24,7 +24,7 @@ body {
 .nav a, .nav button {
     display: block;
     padding: 10px;
-    background-color: #007bff;
+    background-color: #ffae00;
     color: #fff;
     text-decoration: none;
     border: none;
@@ -33,11 +33,11 @@ body {
 }
 
 .nav a:hover, .nav button:hover {
-    background-color: #0056b3;
+    background-color: #ff9500;
 }
 
 h1, h2 {
-    color: #007bff;
+    color: #ff9100;
 }
 
 form {
@@ -60,7 +60,7 @@ form button {
 }
 
 form button {
-    background-color: #007bff;
+    background-color: #ffb300;
     color: #fff;
     border: none;
     cursor: pointer;
@@ -77,7 +77,7 @@ ul {
 }
 
 ul li {
-    background-color: #fff;
+    background-color: #c8c8c8;
     margin: 10px 0;
     padding: 10px;
     border: 1px solid #ddd;
@@ -91,7 +91,7 @@ ul li {
 #messages-list {
     max-height: 300px;
     overflow-y: auto;
-    border: 1px solid #ddd;
+    border: 1px solid #000000;
     padding: 10px;
     border-radius: 4px;
     margin-bottom: 10px;

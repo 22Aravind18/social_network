@@ -1,92 +1,339 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
-    <script>
-        // Chat functionality
-        var chatSocket;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'styles.css' %}">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #1e1e1e;
+      color: white;
+      display: flex;
+      height: 100vh;
+    }
+    .chat-container {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
 
-        function updateChatBox(friendId, friendUsername) {
-            const chatBox = document.getElementById('chat-box');
-            chatBox.dataset.recipientId = friendId;
-            document.querySelector('#chat-box h2').textContent = `Chatting with ${friendUsername}`;
-            startChat(friendId);  // Start the new chat with the selected friend
-        }
+    /* Left Panel */
+    #chats-list {
+      width: 250px;
+      background-color: #2b2b2b;
+      border-right: 1px solid #3a3a3a;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    #chats-list h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    #chats-list ul {
+      list-style: none;
+      padding: 0;
+    }
+    #chats-list ul li {
+      padding: 10px;
+      margin-bottom: 8px;
+      background-color: #3a3a3a;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #chats-list ul li:hover {
+      background-color: #ffae00;
+      color: black;
+    }
 
-        function startChat(recipientId) {
-            fetch(`/messages/${recipientId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    const messagesList = document.getElementById('messages-list');
-                    messagesList.innerHTML = '';
-                    data.forEach(message => {
-                        const messageItem = document.createElement('li');
-                        messageItem.textContent = `${message.sender.username}: ${message.content}`;
-                        messagesList.appendChild(messageItem);
-                    });
-                    setupWebSocket(recipientId);
-                });
-        }
+    /* Chat Box */
+    #chat-box {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      position: relative;
+    }
 
-        function setupWebSocket(recipientId) {
-                if (chatSocket) {
-                    chatSocket.close();
-                }
-                const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-                const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-                const wsHost = isLocalhost ? `${wsProtocol}://localhost:8000/ws/chat/${recipientId}/` : `${wsProtocol}://${window.location.hostname}/ws/chat/${recipientId}/`;
-                chatSocket = new WebSocket(wsHost);
-                chatSocket.onmessage = function(e) {
-                    const data = JSON.parse(e.data);
-                    const message = data.message;
-                    const messagesList = document.getElementById('messages-list');
-                    const messageItem = document.createElement('li');
-                    messageItem.textContent = `${message.sender.username}: ${message.content}`;
-                    messagesList.appendChild(messageItem);
-                };
-                const form = document.getElementById('chat-form');
-                form.onsubmit = function(e) {
-                    e.preventDefault();
-                    const messageInput = document.getElementById('message-input');
-                    chatSocket.send(JSON.stringify({ 'message': messageInput.value }));
-                    messageInput.value = '';
-                };
-            }
+    /* Chat Header */
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .back-buttons {
+      position: absolute;
+      left: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    .back-buttons button {
+      background: #ffae00;
+      border: none;
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .chat-header h2 {
+      font-size: 18px;
+      margin: 0;
+    }
 
-        window.onload = function() {
-            const recipientId = document.getElementById('chat-box').dataset.recipientId;
-            startChat(recipientId);
-        }
-    </script>
+    /* Messages */
+    #messages-list {
+      flex-grow: 1;
+      padding: 10px;
+      background-color: #2b2b2b;
+      border-radius: 8px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message-wrapper {
+      display: flex;
+      flex-direction: column;
+      margin: 4px 0;
+    }
+    .message-wrapper.sent {
+      align-items: flex-end;
+    }
+    .message-wrapper.received {
+      align-items: flex-start;
+    }
+
+    .message {
+      display: flex;
+      align-items: flex-end;
+      position: relative;
+      word-break: break-word;
+      max-width: 90%;
+    }
+    .message .profile-indicator {
+      width: 35px;
+      height: 35px;
+      background-color: #ffae00;
+      color: black;
+      font-weight: bold;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .message-bubble {
+      background-color: #3a3a3a;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      margin: 0 8px;
+      max-width: 100%;
+    }
+    .message.sent {
+      flex-direction: row-reverse;
+    }
+    .message.sent .message-bubble {
+      background-color: #ffae00;
+      color: black;
+    }
+    .message-info {
+      font-size: 11px;
+      color: #bbb;
+      margin-top: 4px;
+      text-align: left;
+    }
+    .message-wrapper.sent .message-info {
+      text-align: right;
+    }
+
+    /* Input Area */
+    #chat-form {
+      display: flex;
+      background-color: #2b2b2b;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    #message-input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 20px;
+      margin-right: 8px;
+      background-color: #3a3a3a;
+      color: white;
+      font-size: 14px;
+    }
+    #chat-form button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #ffae00;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: black;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+    }
+
+    .chat-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+    }
+
+    #chat-box {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      margin: 0;
+      width: calc(100% - 250px);
+      box-sizing: border-box;
+    }
+
+    /* Responsive: Full width messages on small screens */
+    @media (max-width: 600px) {
+      .message {
+        max-width: 100%;
+      }
+      #chats-list {
+        display: none;
+      }
+      #chat-box {
+        width: 100%;
+      }
+    }
+  </style>
+
+  <script>
+    var chatSocket;
+
+    function updateChatBox(friendId, friendUsername) {
+      document.getElementById('chat-box').style.display = 'flex';
+      document.getElementById('chats-list').style.display = 'none';
+      document.querySelector('#chat-box h2').textContent = `Chatting with ${friendUsername}`;
+      document.getElementById('chat-box').dataset.recipientId = friendId;
+      startChat(friendId);
+    }
+
+    function startChat(recipientId) {
+      fetch(`/messages/${recipientId}/`)
+        .then(response => response.json())
+        .then(data => {
+          const messagesList = document.getElementById('messages-list');
+          messagesList.innerHTML = '';
+          data.forEach(message => renderMessage(message));
+          scrollToBottom();
+          setupWebSocket(recipientId);
+        });
+    }
+
+    function renderMessage(message) {
+      const messagesList = document.getElementById('messages-list');
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'message-wrapper';
+      if (message.sender.username === "{{ user.username }}") {
+        wrapper.classList.add('sent');
+      } else {
+        wrapper.classList.add('received');
+      }
+
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message ' + (message.sender.username === "{{ user.username }}" ? 'sent' : 'received');
+
+      const profileIndicator = document.createElement('div');
+      profileIndicator.className = 'profile-indicator';
+      profileIndicator.textContent = message.sender.username[0].toUpperCase();
+
+      const bubble = document.createElement('div');
+      bubble.className = 'message-bubble';
+      bubble.textContent = message.content;
+
+      const info = document.createElement('div');
+      info.className = 'message-info';
+      info.textContent = new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+      msgDiv.appendChild(profileIndicator);
+      msgDiv.appendChild(bubble);
+      wrapper.appendChild(msgDiv);
+      wrapper.appendChild(info);
+
+      messagesList.appendChild(wrapper);
+      scrollToBottom();
+    }
+
+    function setupWebSocket(recipientId) {
+      if (chatSocket) chatSocket.close();
+      const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+      chatSocket = new WebSocket(`${wsProtocol}://${window.location.host}/ws/chat/${recipientId}/`);
+      chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        renderMessage(data.message);
+      };
+      document.getElementById('chat-form').onsubmit = function(e) {
+        e.preventDefault();
+        const messageInput = document.getElementById('message-input');
+        chatSocket.send(JSON.stringify({ 'message': messageInput.value }));
+        messageInput.value = '';
+      };
+    }
+
+    function scrollToBottom() {
+      const messagesList = document.getElementById('messages-list');
+      messagesList.scrollTop = messagesList.scrollHeight;
+    }
+
+    function goHome() { window.location.href = "{% url 'home' %}"; }
+    function showChatList() {
+      document.getElementById('chat-box').style.display = 'none';
+      document.getElementById('chats-list').style.display = 'block';
+    }
+    window.onload = () => document.getElementById('chat-box').style.display = 'none';
+  </script>
 </head>
 <body>
-    <h1>Chat</h1>
-    <a href="{% url 'home' %}">Back to Home</a>
-
-    <!-- Chat List -->
+  <div class="chat-container">
     <div id="chats-list">
-        <h2>Your Chats:</h2>
-        <ul>
-            {% for friend in friends %}
-                <li>
-                    <a href="#" onclick="startChat({{ friend.id }}); return false;">{{ friend.username }}</a>
-                </li>
-            {% endfor %}
-        </ul>
+      <h2>Your Chats:</h2>
+      <ul>
+        {% for friend in friends %}
+          <li onclick="updateChatBox({{ friend.id }}, '{{ friend.username }}')">{{ friend.username }}</li>
+        {% endfor %}
+      </ul>
     </div>
 
-    <!-- Chat Box -->
     <div id="chat-box" data-recipient-id="{{ recipient.id }}">
-    <h2>Chatting with {{ recipient.username }}</h2>
-    <ul id="messages-list"></ul>
-    <form id="chat-form">
-        <input type="text" id="message-input" placeholder="Type a message..." required>
-        <button type="submit">Send</button>
-    </form>
-</div>
+      <div class="chat-header">
+        <div class="back-buttons">
+          <button onclick="goHome()">←</button>
+          <button onclick="showChatList()">≡</button>
+        </div>
+        <h2>Chatting with {{ recipient.username }}</h2>
+      </div>
+      <ul id="messages-list"></ul>
+      <form id="chat-form">
+        <input type="text" id="message-input" placeholder="Message here..." required>
+        <button type="submit">></button>
+      </form>
+    </div>
+  </div>
 </body>
 </html>
