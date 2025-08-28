@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-t2nq#(-+b)a+by^x6*(pkl!j4aa=i-3##s@b3df^8l8%@#rsg)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["19fd-2409-40f4-1016-f5e5-ec5a-4433-5e72-7cc2.ngrok-free.app", "127.0.0.1", "localhost",]
+ALLOWED_HOSTS = ["19fd-2409-40f4-1016-f5e5-ec5a-4433-5e72-7cc2.ngrok-free.app", "127.0.0.1", "localhost", "*", ".up.railway.app", "socialnetwork-production-1cce.up.railway.app"]
 
 AUTH_USER_MODEL = 'api.User'
 
@@ -149,9 +149,11 @@ CHANNEL_LAYERS = {
 
 CSRF_TRUSTED_ORIGINS = [
     "https://19fd-2409-40f4-1016-f5e5-ec5a-4433-5e72-7cc2.ngrok-free.app",
+    "https://socialnetwork-production-1cce.up.railway.app"
 ]
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:8000',
     'http://19fd-2409-40f4-1016-f5e5-ec5a-4433-5e72-7cc2.ngrok-free.app.ngrok.io',
+    "https://socialnetwork-production-1cce.up.railway.app",
 ]
