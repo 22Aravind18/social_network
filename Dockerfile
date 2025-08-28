@@ -18,3 +18,5 @@ RUN pip install --upgrade pip setuptools wheel
 RUN pip install -r requirements.txt
 
 COPY . /code/
+
+CMD ["gunicorn", "social_network.wsgi:application", "--bind", "0.0.0.0:8000"]
